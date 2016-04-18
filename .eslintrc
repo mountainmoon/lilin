@@ -1,0 +1,30 @@
+{
+    "env": {
+        "es6": true,
+        "node": true
+    },
+    "parserOptions": {
+        "sourceType": "module"
+    },
+    "root": true,
+    "parser": "babel-eslint",
+    "rules": {
+        "strict": 0,
+        "indent": [
+            "warn",
+            2
+        ],
+        "linebreak-style": [
+            "warn",
+            "unix"
+        ],
+        "quotes": [
+            "warn",
+            "single"
+        ],
+        "semi": [
+            "warn",
+            "never"
+        ]
+    }
+}
