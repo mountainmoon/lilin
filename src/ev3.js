@@ -25,6 +25,7 @@ var minWalkDis = 350
 **/
 class EV3 extends EventEmitter {
   constructor() {
+    super()
     // Listen for controlling EV3 through the keyboard
     this.rl = readline.createInterface({
       input: process.stdin,
