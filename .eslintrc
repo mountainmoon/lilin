@@ -25,6 +25,7 @@
         "semi": [
             "warn",
             "never"
-        ]
+        ],
+        "no-undef": 2
     }
 }

@@ -1,7 +1,9 @@
 import readline from 'readline'
 import ev3dev from 'ev3dev-lang'
-import EventEmitter from 'events'
+// for node 0.10.x
+import {EventEmitter} from 'events'
 import {timeQueue} from './time-queue'
+import 'babel-polyfill'
 
 // Define dev(abbr. for deviation) = position[programed] - position[real]
 // Define minDev = 5
@@ -34,27 +36,27 @@ class EV3 extends EventEmitter {
 
     this.motors = {
       leftMotor: new ev3dev.LargeMotor('outB'),
-      rightMotor: new ev3dev.LargeMotor('outC'),
+      rightMotor: new ev3dev.LargeMotor('outD'),
       detectMotor: new ev3dev.MediumMotor('outA')
     }
     if (!this.motors.leftMotor.connected)
       throw Error('Left motor(outB) is not connected')
     if (!this.motors.rightMotor.connected)
-      throw Error('Right motor(outC) is not connected')
+      throw Error('Right motor(outD) is not connected')
     if (!this.motors.detectMotor.connected)
-      throw Error('Detecting motor(outC) is not connected')
+      throw Error('Detecting motor(outA) is not connected')
 
     for (var key in this.motors) {
       this.motors[key].reset()
-      this.motors[key].stopCommand('brake')
+      this.motors[key].stopCommand = 'brake'
     }
 
     this.sensors = {
       us: new ev3dev.UltrasonicSensor()
     }
-    if (!us.connected)
+    if (!this.sensors.us.connected)
       throw Error('No sensor is connected')
-    us.mode('US-DIST-CM')
+    this.sensors.us.mode = 'US-DIST-CM'
   }
 
   walk() {
@@ -66,6 +68,8 @@ class EV3 extends EventEmitter {
       this.motors.rightMotor.sendCommand('run-direct')
       timeQueue.push(() => {
         if (!this.detect()) {
+          this.motors.leftMotor.sendCommand('stop')
+          this.motors.rightMotor.sendCommand('stop')
           this.emit('meetWall')
           return true
         }
@@ -82,15 +86,14 @@ class EV3 extends EventEmitter {
 
       speed = dir == 'left' ? -1 * speed : speed
 
-      this.motors.detectMotor.speedRegulationEnabled = true
+      this.motors.detectMotor.speedRegulationEnabled = 'on'
       this.motors.detectMotor.speedSp = speed
-      this.motors.sendCommand('run-forever')
-
+      this.motors.detectMotor.sendCommand('run-forever')
       timeQueue.push(() => {
         if (this.detect(minWalkDis)) {
           res({dir, isOK: true})
           return true
-        } else if (this.motors.detectMotor.position >= 90) {
+        } else if (Math.abs(this.motors.detectMotor.position) >= 90) {
           res({dir, isOK: false})
           return true
         }
@@ -104,21 +107,25 @@ class EV3 extends EventEmitter {
 
       return new Promise((res, rej) => {
         timeQueue.push(() => {
-          if (Math.abs(this.detectMotor.position) <= minDev) {
+          if (Math.abs(this.motors.detectMotor.position) <= minDev) {
             res (result)
             return true
           }
         })
       })
-    }).catch(err => this.motors.sendCommand('stop'))
+    }).catch(err => {
+      this.motors.detectMotor.sendCommand('stop')
+      console.log(err)
+    })
   }
 
   detect(range = stopDis) {
+    console.log(`dis: ${this.sensors.us.getValue(0)}, range: ${range}`)
     return this.sensors.us.getValue(0) > range
   }
 
   rotate(dir, pos = null, dutyCycle = rotateDC) {
-    var promise = new Promise((res, req) => {
+    return new Promise((res, req) => {
       if (!dir) throw Error('Should be either left or right')
       if (pos !== null) throw TypeError('Should be null. Not implemented')
 
@@ -140,7 +147,7 @@ class EV3 extends EventEmitter {
 
   reset() {
     for(var key in this.motors) {
-      this.motors.reset()
+      this.motors[key].reset()
     }
   }
 }

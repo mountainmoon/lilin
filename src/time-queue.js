@@ -1,12 +1,14 @@
 // todo: add checking limits(to `push`?).
 class TimeQueue {
   constructor(fn, interval = 150, limits = 300) {
-    if (!fn) {
+    if (fn) {
       this.queue = Array.isArray(fn) ? fn : [fn]
     } else {
       this.queue = []
     }
+    this.limits = limits
     this._interval = interval
+    this._timer = null
     this.check()
   }
 
@@ -23,8 +25,9 @@ class TimeQueue {
             this._timer = null
           }
         } else {
+          i++
           fn.counts = !fn.counts ? 1 : fn.counts + 1
-          if (fn.counts >= limits)
+          if (fn.counts >= this.limits)
             throw Error('Looks like tried too many times:' + fn.toString())
         }
       }
