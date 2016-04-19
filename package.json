@@ -1,10 +1,9 @@
 {
   "name": "lilin",
   "version": "0.0.1",
-  "description": "A simple self-driving car program for ev3",
-  "main": "index.js",
+  "description": "A simple self-driving program for lego ev3",
+  "main": "lib/ev3.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "build": "babel src -d lib",
     "eslint": "eslint src/**/*.js"
   },
@@ -12,7 +11,8 @@
     "ev3",
     "self-driving",
     "ev3dev",
-    "robot"
+    "robot",
+    "lego"
   ],
   "author": "yuekec",
   "license": "MIT",
